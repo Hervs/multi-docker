@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+
+before_install: 
+  - docker build -t hervs/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true hervs/react-test npm test 
+
+after_success:
+  - docker build -t hervs/multi-client ./client
+  - docker build -t hervs/multi-nginx ./nginx
+  - docker build -t hervs/multi-server ./server
+  - docker build -t hervs/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker_login -u "$DOCKER_ID" --password-stdin
+  - docker push hervs/multi-client
+  - docker push hervs/multi-nginx 
+  - docker push hervs/multi-server
+  - docker push hervs/multi-worker
